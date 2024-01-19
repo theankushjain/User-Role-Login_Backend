@@ -19,11 +19,17 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+//    private static final String WELCOME_URL = "/auth/welcome";
+//    private static final String ADD_NEW_USER_URL = "/auth/addNewUser";
 
     @Autowired
     private JwtAuthFilter authFilter;
@@ -34,12 +40,41 @@ public class SecurityConfig {
         return new CustomUserDetailsService();
     }
 
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        return http
+//                .headers().cacheControl().disable().and()
+//                .csrf().disable()
+//                .authorizeHttpRequests()
+//                .requestMatchers(publicEndpoints()).permitAll()
+//                .and()
+//                .authorizeHttpRequests().requestMatchers("/auth/user/**").authenticated()
+//                .and()
+//                .authorizeHttpRequests().requestMatchers("/auth/admin/**").authenticated()
+//                .and()
+//                .sessionManagement()
+//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+//                .and()
+//                .authenticationProvider(authenticationProvider())
+//                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
+//                .build();
+//    }
+//
+//    private RequestMatcher publicEndpoints() {
+//        return new OrRequestMatcher(
+//                new AntPathRequestMatcher(WELCOME_URL),
+//                new AntPathRequestMatcher(ADD_NEW_USER_URL),
+//                // ... other public URLs
+//        );
+//    }
+
+
     // Configuring HttpSecurity
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.headers().cacheControl().disable().and().csrf().disable()
                 .authorizeHttpRequests()
-                .requestMatchers("/auth/welcome", "/auth/addNewUser", "/auth/generateToken", "/auth/getUsers", "/auth/getRoles").permitAll()
+                .requestMatchers( "/auth/users/**", "/auth/roles/**", "/auth/generateToken", "/auth/getRolesOfUser").permitAll()
                 .and()
                 .authorizeHttpRequests().requestMatchers("/auth/user/**").authenticated()
                 .and()

@@ -27,6 +27,9 @@ public class User
     @Column(nullable=false)
     private String password;
 
+    @Column(name = "is_deleted")
+    private boolean deleted = false;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL) //relation bw user and role is many-to-many
     @JoinTable(  //specifies name of join table and foreign keys for join table
             name="users_roles",

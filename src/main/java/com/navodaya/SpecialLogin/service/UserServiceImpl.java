@@ -1,11 +1,11 @@
 package com.navodaya.SpecialLogin.service;
 
+import com.navodaya.SpecialLogin.dto.AddUserRequestDTO;
+import com.navodaya.SpecialLogin.dto.UpdateUserRequestDTO;
 import com.navodaya.SpecialLogin.entity.Role;
 import com.navodaya.SpecialLogin.entity.User;
 import com.navodaya.SpecialLogin.repository.RoleRepository;
 import com.navodaya.SpecialLogin.repository.UserRepository;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,58 +29,51 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String saveUser(User user) {
-        List<Role> roles = user.getRoles();
-        List<Role> fetchedRoles = new ArrayList<>();
-        Role role = new Role();
-        try {
-            // encrypt the password using spring security
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-            for (Role value : roles) {
-                role = roleRepository.findByName(value.getName());
-                if (role != null) {
-                    fetchedRoles.add(role); // Collect roles
-                }
+    public User saveUser(AddUserRequestDTO userRequest) {
+        List<Role> roles = userRequest.getRoles(); // Assuming this returns a list of role names
+        List<Role> roleObjects = new ArrayList<>();
+        for (Role role : roles) {
+            Role foundRole = roleRepository.findByName(role.getName());
+            if (foundRole != null) {
+                roleObjects.add(foundRole);
+            } else {
+                System.out.println("not found");
             }
-            //findByName function defined by us in roleRepository
-//        if(role == null){
-//            role = checkRoleExist();
-//        }
-            user.setRoles(fetchedRoles);
-            userRepository.save(user);
-            return "{\"Success\":\"User Added\"}";
-        } catch (Exception e) {
-            // Handle the exception appropriately
-            e.printStackTrace(); // or log the exception details
-            return "{\"Error\": \"Unable to add user. Please try again.\"}";
         }
+        userRequest.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        User user = User.build(null, userRequest.getName(), userRequest.getEmail(), userRequest.getPassword(), false, roleObjects);
+        return userRepository.save(user);
     }
 
     @Override
-    public String updateUser(User updatedUserData, Long userId) {
-        try {
-            Optional<User> existingUserOptional = userRepository.findById(userId);
+    public User updateUser(UpdateUserRequestDTO updatedUserData, Long userId) {
+        Optional<User> existingUserOptional = userRepository.findById(userId);
 
-            if (existingUserOptional.isPresent()) {
-                User existingUser = existingUserOptional.get();
+        if (existingUserOptional.isPresent()) {
+            User existingUser = existingUserOptional.get();
 
-                // Update the fields based on the incoming data
-                existingUser.setName(updatedUserData.getName());
-                existingUser.setEmail(updatedUserData.getEmail());
-                existingUser.setPassword(updatedUserData.getPassword());
-                existingUser.setRoles(updatedUserData.getRoles());
-
-                // Save the updated user
-                saveUser(existingUser);
+            // Update the fields based on the incoming data
+            existingUser.setName(updatedUserData.getName());
+            existingUser.setEmail(updatedUserData.getEmail());
+            List<Role> roles = updatedUserData.getRoles();
+            List<Role> roleObjects = new ArrayList<>();
+            for (Role role : roles) {
+                Role foundRole = roleRepository.findByName(role.getName());
+                if (foundRole != null) {
+                    roleObjects.add(foundRole);
+                } else {
+                    System.out.println("not found");
+                }
             }
-            return "{\"Success\":\"User Updated\"}";
-        } catch (Exception e) {
-            // Handle exceptions appropriately
-            return "{\"Error\":\"User not Updated\"}";
+            User user = User.build(existingUser.getId(),existingUser.getName(), existingUser.getEmail(), existingUser.getPassword(), false, roleObjects);
+
+            // Save the updated user
+            return userRepository.save(user);
+        }
+        else{
+            return null;
         }
     }
-
     @Override
     public List<Role> getRolesOfUser(UserDetails userDetails) {
         //Extract Username from Token

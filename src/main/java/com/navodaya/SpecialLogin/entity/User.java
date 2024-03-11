@@ -1,8 +1,9 @@
 package com.navodaya.SpecialLogin.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,10 +11,10 @@ import java.util.List;
 @Data
 @Entity   //specified that the class is mapped to a db table
 @Table(name="users") //Name of DB Table that the Class is mapped to
+@AllArgsConstructor(staticName = "build")
+@NoArgsConstructor
 public class User
 {
-    private static final long serialVersionUID = 1L;
-
     @Id  //Primary Key for DB Table
     @GeneratedValue(strategy = GenerationType.IDENTITY) //primary key value to be auto generated
     private Long id;

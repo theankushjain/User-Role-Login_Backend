@@ -1,5 +1,7 @@
 package com.navodaya.SpecialLogin.controller;
 
+import com.navodaya.SpecialLogin.dto.AddUserRequestDTO;
+import com.navodaya.SpecialLogin.dto.UpdateUserRequestDTO;
 import com.navodaya.SpecialLogin.entity.AuthRequest;
 import com.navodaya.SpecialLogin.entity.JwtResponse;
 import com.navodaya.SpecialLogin.entity.Role;
@@ -48,16 +50,14 @@ public class UserController {
 
     @CrossOrigin
     @PostMapping("/users/add")
-    public String addNewUser(@RequestBody User userInfo) {
+    public User addNewUser(@RequestBody AddUserRequestDTO userInfo) {
         return userService.saveUser(userInfo);
     }
 
     @CrossOrigin
     @PutMapping("/users/{userId}")
-    public String editUser(@RequestBody User userInfo, @PathVariable Long userId){
-        String message = userService.updateUser(userInfo, userId);
-        System.out.println(message);
-        return message;
+    public User editUser(@RequestBody UpdateUserRequestDTO userInfo, @PathVariable Long userId){
+        return userService.updateUser(userInfo, userId);
     }
 
     @CrossOrigin

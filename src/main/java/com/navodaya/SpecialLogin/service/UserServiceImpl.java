@@ -4,8 +4,10 @@ import com.navodaya.SpecialLogin.dto.AddUserRequestDTO;
 import com.navodaya.SpecialLogin.dto.UpdateUserRequestDTO;
 import com.navodaya.SpecialLogin.entity.Role;
 import com.navodaya.SpecialLogin.entity.User;
+import com.navodaya.SpecialLogin.exception.UserNotFoundException;
 import com.navodaya.SpecialLogin.repository.RoleRepository;
 import com.navodaya.SpecialLogin.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,9 +17,13 @@ import java.util.*;
 @Service  //suggests framework that the business logic resides here. Allows Autodetection of impl classes
 public class UserServiceImpl implements UserService {
 
+    @Autowired
     private UserRepository userRepository;
 
+    @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     public UserServiceImpl(UserRepository userRepository,
@@ -46,7 +52,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateUser(UpdateUserRequestDTO updatedUserData, Long userId) {
+    public User updateUser(UpdateUserRequestDTO updatedUserData, Long userId) throws UserNotFoundException {
         Optional<User> existingUserOptional = userRepository.findById(userId);
 
         if (existingUserOptional.isPresent()) {
@@ -71,7 +77,7 @@ public class UserServiceImpl implements UserService {
             return userRepository.save(user);
         }
         else{
-            return null;
+            throw new UserNotFoundException("User not found with id:" + userId);
         }
     }
     @Override
@@ -88,6 +94,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Optional<User> findUserById(Long id){
+        return  userRepository.findById(id);
+    }
+
+    @Override
     public List<User> findAllUsers() {
          return userRepository.findAllNotDeleted(); //findAll function provided by JPARepository
     }
@@ -96,13 +107,7 @@ public class UserServiceImpl implements UserService {
     public List<Role> findAllRoles(){ return roleRepository.findAll();}
 
     @Override
-    public String softDeleteUser(Long userId) {
-        try{
-            userRepository.softDelete(userId);
-            return "{\"Success\":\"User Deleted\"}";
-        }catch (Exception e){
-            e.printStackTrace();
-            return "{\"Error\":\"User not Deleted\"}";
-        }
+    public int softDeleteUser(Long userId) {
+        return userRepository.softDelete(userId);
     }
 }

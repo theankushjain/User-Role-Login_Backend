@@ -4,6 +4,7 @@ import com.navodaya.SpecialLogin.entity.Role;
 import com.navodaya.SpecialLogin.entity.User;
 
 import com.navodaya.SpecialLogin.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -25,11 +26,13 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Autowired
     private PasswordEncoder encoder;
+    JwtService jwtService;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
         User user = repository.findByEmail(email);
+
 
         if (user != null) {
             return new org.springframework.security.core.userdetails.User(user.getEmail(),
@@ -39,13 +42,22 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("Invalid username or password.");
         }
     }
-
     private Collection< ? extends GrantedAuthority> mapRolesToAuthorities(List<Role> roles) {
         Collection < ? extends GrantedAuthority> mapRoles = roles.stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toList());
         return mapRoles;
     }
+
+//    public User extractUser(HttpServletRequest request){
+//        String authHeader = request.getHeader("Authorization");
+//        String token = null;
+//        String username = null;
+//        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+//            token = authHeader.substring(7);
+//            username = jwtService.extractUsername(token);
+//        }
+//    }
 
 
 }

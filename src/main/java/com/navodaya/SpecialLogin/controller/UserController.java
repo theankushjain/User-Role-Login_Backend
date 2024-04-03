@@ -6,11 +6,15 @@ import com.navodaya.SpecialLogin.entity.AuthRequest;
 import com.navodaya.SpecialLogin.entity.JwtResponse;
 import com.navodaya.SpecialLogin.entity.Role;
 import com.navodaya.SpecialLogin.entity.User;
+import com.navodaya.SpecialLogin.exception.UserNotFoundException;
 import com.navodaya.SpecialLogin.service.JwtService;
 
 import com.navodaya.SpecialLogin.service.UserService;
 import com.navodaya.SpecialLogin.service.RoleService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +27,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.Console;
 import java.util.List;
+
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 
 
 @CrossOrigin
@@ -44,26 +51,26 @@ public class UserController {
 
     @CrossOrigin(origins = "http://localhost:4200/")
     @GetMapping("/users")
-    public List<User> getUser(){
-        return userService.findAllUsers();
+    public ResponseEntity<List<User>> getUser(){
+        return ResponseEntity.ok(userService.findAllUsers());
     }
 
     @CrossOrigin
     @PostMapping("/users/add")
-    public User addNewUser(@RequestBody AddUserRequestDTO userInfo) {
-        return userService.saveUser(userInfo);
+    public ResponseEntity<User> addNewUser(@RequestBody @Valid AddUserRequestDTO addUserInfo) {
+        return new ResponseEntity<>(userService.saveUser(addUserInfo), CREATED);
     }
 
     @CrossOrigin
     @PutMapping("/users/{userId}")
-    public User editUser(@RequestBody UpdateUserRequestDTO userInfo, @PathVariable Long userId){
-        return userService.updateUser(userInfo, userId);
+    public ResponseEntity<User> editUser(@RequestBody UpdateUserRequestDTO userInfo, @PathVariable Long userId) throws UserNotFoundException {
+       return new ResponseEntity<>(userService.updateUser(userInfo, userId), OK);
     }
 
     @CrossOrigin
     @DeleteMapping("/users/{userId}")
-    public String deleteUser(@PathVariable Long userId){
-        return userService.softDeleteUser(userId);
+    public int deleteUser(@PathVariable Long userId){
+        return userService.softDeleteUser(userId) ;
     }
 
     @CrossOrigin(origins = "http://localhost:4200/")

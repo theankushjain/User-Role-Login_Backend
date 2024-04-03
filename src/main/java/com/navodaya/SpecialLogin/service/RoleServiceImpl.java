@@ -4,6 +4,7 @@ import com.navodaya.SpecialLogin.entity.Role;
 import com.navodaya.SpecialLogin.entity.User;
 import com.navodaya.SpecialLogin.repository.RoleRepository;
 import com.navodaya.SpecialLogin.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,10 +18,14 @@ import java.util.Optional;
 @Service
 public class RoleServiceImpl implements RoleService {
 
+    @Autowired
     private RoleRepository roleRepository;
+    @Autowired
     private UserRepository userRepository;
+    @Autowired
     private JwtService jwtService;
     private JwtAuthFilter jwtAuthFilter;
+    @Autowired
     private UserService userService;
     private String username;
     private User user;

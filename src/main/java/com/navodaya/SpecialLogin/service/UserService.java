@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
-    User saveUser(AddUserRequestDTO userRequest);
+    User saveUser(AddUserRequestDTO userRequest, User currentUser);
 
-    User updateUser(UpdateUserRequestDTO user, Long userId) throws UserNotFoundException;
+    User updateUser(UpdateUserRequestDTO user, Long userId, User currentUser) throws UserNotFoundException;
 
     List<Role> getRolesOfUser(UserDetails userDetails);
 
@@ -25,5 +25,5 @@ public interface UserService {
 
     List<Role> findAllRoles();
 
-    public int softDeleteUser(Long userId);
+    public User softDeleteUser(Long userId, User user) throws UserNotFoundException;
 }

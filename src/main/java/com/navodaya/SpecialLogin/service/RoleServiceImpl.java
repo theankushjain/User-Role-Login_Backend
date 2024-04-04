@@ -1,7 +1,10 @@
 package com.navodaya.SpecialLogin.service;
 
+import com.navodaya.SpecialLogin.entity.Menu;
 import com.navodaya.SpecialLogin.entity.Role;
 import com.navodaya.SpecialLogin.entity.User;
+import com.navodaya.SpecialLogin.exception.MenuNotFoundException;
+import com.navodaya.SpecialLogin.exception.RoleNotFoundException;
 import com.navodaya.SpecialLogin.repository.RoleRepository;
 import com.navodaya.SpecialLogin.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 import com.navodaya.SpecialLogin.service.JwtService;
 import com.navodaya.SpecialLogin.filter.JwtAuthFilter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,24 +44,26 @@ public class RoleServiceImpl implements RoleService {
     } //Read
 
     @Override
-    public String createRole(Role theRole) {
+    public Role createRole(Role roleRequest) {
 //        Optional<Role> checkRole = Optional.ofNullable(roleRepository.findByName(theRole.getName()));
 //        if (checkRole.isPresent()){
 //            throw new RoleAlreadyExistsException(checkRole.get().getName()+ " role already exist");
 //        }
-        try {
-            roleRepository.save(theRole);
-            return "{\"Success\":\"Role Added\"}";
-        } catch (Exception e) {
-            // Handle the exception appropriately
-            e.printStackTrace(); // or log the exception details
-            return "{\"Error\": \"Unable to add role. Please try again.\"}";
-        }
+        Role role = Role.build(null, roleRequest.getName(),null);
+        return roleRepository.save(role);
     }
 
     @Override
     public String deleteRole(Long roleId) {
-//        this.removeAllUsersFromRole(roleId);
+//        Optional<Role> existingRoleOptional = roleRepository.findById(roleId);
+//        if (existingRoleOptional.isPresent()) {
+//            Role existingRole = existingRoleOptional.get();
+//            Role updatedRole = Role.build(existingRole.getId(), existingRole.getName(),existingRole.getUsers(),true);
+//            return roleRepository.save(updatedRole);
+//        }
+//        else {
+//            throw new RoleNotFoundException("Role not found with id:" + roleId);
+//        }
         if (usersAssociatedWithRole(roleId).isEmpty()){
             roleRepository.deleteById(roleId);
             return "{\"Success\": \"Deleted role Successfully.\"}";
@@ -69,23 +75,15 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public String updateRole(Role updatedRoleData, Long roleId){
-        try {
-            Optional<Role> existingRoleOptional = roleRepository.findById(roleId);
-
-            if (existingRoleOptional.isPresent()) {
-                Role existingRole = existingRoleOptional.get();
-
-                // Update the fields based on the incoming data
-                existingRole.setName(updatedRoleData.getName());
-
-                // Save the updated user
-                createRole(existingRole);
-            }
-            return "{\"Success\":\"Role Updated\"}";
-        } catch (Exception e) {
-            // Handle exceptions appropriately
-            return "{\"Error\":\"Role not Updated\"}";
+    public Role updateRole(Role updatedRoleData, Long roleId) throws RoleNotFoundException {
+        Optional<Role> existingRoleOptional = roleRepository.findById(roleId);
+        if (existingRoleOptional.isPresent()) {
+            Role existingRole = existingRoleOptional.get();
+            Role updatedRole = Role.build(existingRole.getId(), updatedRoleData.getName(),existingRole.getUsers());
+            return roleRepository.save(updatedRole);
+        }
+        else {
+            throw new com.navodaya.SpecialLogin.exception.RoleNotFoundException("Role not found with id:" + roleId);
         }
     }
 

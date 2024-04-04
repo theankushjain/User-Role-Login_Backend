@@ -2,9 +2,7 @@ package com.navodaya.SpecialLogin.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
@@ -12,6 +10,8 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
+@AllArgsConstructor(staticName = "build")
+@NoArgsConstructor
 @Table(name="roles")
 public class Role
 {
@@ -26,14 +26,12 @@ public class Role
     @ManyToMany(mappedBy="roles")
     private List<User> users;
 
+//    @Column(name = "is_deleted")
+//    private boolean deleted = false;
+
     // Constructor for deserialization
     public Role(String name) {
         this.name = name;
-    }
-
-    // Default constructor without arguments
-    public Role() {
-        // No-argument constructor
     }
 
     //These three Functions have been used in RoleServiceImpl

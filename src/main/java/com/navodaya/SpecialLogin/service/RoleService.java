@@ -2,6 +2,7 @@ package com.navodaya.SpecialLogin.service;
 
 import com.navodaya.SpecialLogin.entity.Role;
 import com.navodaya.SpecialLogin.entity.User;
+import com.navodaya.SpecialLogin.exception.RoleNotFoundException;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
@@ -11,11 +12,11 @@ public interface RoleService {
 
     List<Role> getAllRoles(); //Read
 
-    String createRole(Role theRole); //Create
+    Role createRole(Role roleRequest); //Create
 
     String deleteRole(Long roleId); //Delete
 
-    String updateRole(Role role, Long roleId);
+    Role updateRole(Role roleRequest, Long roleId) throws com.navodaya.SpecialLogin.exception.RoleNotFoundException;
 
     Role findByName(String name);
 

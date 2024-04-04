@@ -2,8 +2,10 @@ package com.navodaya.SpecialLogin.service;
 
 import com.navodaya.SpecialLogin.dto.AddUserRequestDTO;
 import com.navodaya.SpecialLogin.dto.UpdateUserRequestDTO;
+import com.navodaya.SpecialLogin.entity.Menu;
 import com.navodaya.SpecialLogin.entity.Role;
 import com.navodaya.SpecialLogin.entity.User;
+import com.navodaya.SpecialLogin.exception.MenuNotFoundException;
 import com.navodaya.SpecialLogin.exception.UserNotFoundException;
 import com.navodaya.SpecialLogin.repository.RoleRepository;
 import com.navodaya.SpecialLogin.repository.UserRepository;
@@ -12,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service  //suggests framework that the business logic resides here. Allows Autodetection of impl classes
@@ -35,7 +38,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User saveUser(AddUserRequestDTO userRequest) {
+    public User saveUser(AddUserRequestDTO userRequest, User currentUser) {
         List<Role> roles = userRequest.getRoles(); // Assuming this returns a list of role names
         List<Role> roleObjects = new ArrayList<>();
         for (Role role : roles) {
@@ -47,17 +50,16 @@ public class UserServiceImpl implements UserService {
             }
         }
         userRequest.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-        User user = User.build(null, userRequest.getName(), userRequest.getEmail(), userRequest.getPassword(), false, roleObjects);
+        User user = User.build(null, userRequest.getName(), userRequest.getEmail(), userRequest.getPassword(), false, roleObjects, LocalDateTime.now(),LocalDateTime.now(), currentUser, currentUser);
         return userRepository.save(user);
     }
 
     @Override
-    public User updateUser(UpdateUserRequestDTO updatedUserData, Long userId) throws UserNotFoundException {
+    public User updateUser(UpdateUserRequestDTO updatedUserData, Long userId, User currentUser) throws UserNotFoundException {
         Optional<User> existingUserOptional = userRepository.findById(userId);
 
         if (existingUserOptional.isPresent()) {
             User existingUser = existingUserOptional.get();
-
             // Update the fields based on the incoming data
             existingUser.setName(updatedUserData.getName());
             existingUser.setEmail(updatedUserData.getEmail());
@@ -71,7 +73,7 @@ public class UserServiceImpl implements UserService {
                     System.out.println("not found");
                 }
             }
-            User user = User.build(existingUser.getId(),existingUser.getName(), existingUser.getEmail(), existingUser.getPassword(), false, roleObjects);
+            User user = User.build(existingUser.getId(),existingUser.getName(), existingUser.getEmail(), existingUser.getPassword(), false, roleObjects, existingUser.getCreatedAt(), LocalDateTime.now(),existingUser.getCreatedBy(), currentUser);
 
             // Save the updated user
             return userRepository.save(user);
@@ -107,7 +109,12 @@ public class UserServiceImpl implements UserService {
     public List<Role> findAllRoles(){ return roleRepository.findAll();}
 
     @Override
-    public int softDeleteUser(Long userId) {
-        return userRepository.softDelete(userId);
+    public User softDeleteUser(Long userId, User user) throws UserNotFoundException{
+        Optional<User> foundUser = userRepository.findById(userId);
+        if (foundUser.isPresent()){
+            User deletedUser=new User();
+            deletedUser = User.build(foundUser.get().getId(), foundUser.get().getName(), foundUser.get().getEmail(),foundUser.get().getPassword(),true,foundUser.get().getRoles(),foundUser.get().getCreatedAt(), LocalDateTime.now(),foundUser.get().getCreatedBy(),user);
+            return userRepository.save(deletedUser);
+        }else throw new UserNotFoundException("User not found with user Id: "+ userId);
     }
 }

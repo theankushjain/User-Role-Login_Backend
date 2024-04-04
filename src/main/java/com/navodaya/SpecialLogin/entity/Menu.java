@@ -37,8 +37,8 @@ public class Menu {
     @Column(name = "is_deleted")
     private boolean deleted= false;
 
-    @Column(nullable=false, unique=true)
     // Logging fields
+    @Column(nullable=false, unique=true)
     private LocalDateTime createdAt;
     @Column(nullable=false, unique=true)
     private LocalDateTime updatedAt;

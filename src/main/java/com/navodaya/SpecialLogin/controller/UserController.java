@@ -6,13 +6,17 @@ import com.navodaya.SpecialLogin.entity.AuthRequest;
 import com.navodaya.SpecialLogin.entity.JwtResponse;
 import com.navodaya.SpecialLogin.entity.Role;
 import com.navodaya.SpecialLogin.entity.User;
+import com.navodaya.SpecialLogin.exception.TokenNotFoundException;
 import com.navodaya.SpecialLogin.exception.UserNotFoundException;
+import com.navodaya.SpecialLogin.exception.RoleNotFoundException;
 import com.navodaya.SpecialLogin.service.JwtService;
 
 import com.navodaya.SpecialLogin.service.UserService;
 import com.navodaya.SpecialLogin.service.RoleService;
+import com.navodaya.SpecialLogin.utils.ExtractUserFromRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.apache.el.parser.Token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,6 +51,9 @@ public class UserController {
     private JwtService jwtService;
 
     @Autowired
+    private ExtractUserFromRequest extractUserFromRequest;
+
+    @Autowired
     private AuthenticationManager authenticationManager;
 
     @CrossOrigin(origins = "http://localhost:4200/")
@@ -57,20 +64,23 @@ public class UserController {
 
     @CrossOrigin
     @PostMapping("/users/add")
-    public ResponseEntity<User> addNewUser(@RequestBody @Valid AddUserRequestDTO addUserInfo) {
-        return new ResponseEntity<>(userService.saveUser(addUserInfo), CREATED);
+    public ResponseEntity<User> addNewUser(HttpServletRequest request, @RequestBody @Valid AddUserRequestDTO addUserInfo) throws TokenNotFoundException {
+        User currentUser =  extractUserFromRequest.extractCurrentUser(request);
+        return new ResponseEntity<>(userService.saveUser(addUserInfo, currentUser), CREATED);
     }
 
     @CrossOrigin
     @PutMapping("/users/{userId}")
-    public ResponseEntity<User> editUser(@RequestBody UpdateUserRequestDTO userInfo, @PathVariable Long userId) throws UserNotFoundException {
-       return new ResponseEntity<>(userService.updateUser(userInfo, userId), OK);
+    public ResponseEntity<User> editUser(HttpServletRequest request, @RequestBody UpdateUserRequestDTO userInfo, @PathVariable Long userId) throws UserNotFoundException, TokenNotFoundException {
+        User currentUser = extractUserFromRequest.extractCurrentUser(request);
+        return new ResponseEntity<>(userService.updateUser(userInfo, userId, currentUser), OK);
     }
 
     @CrossOrigin
     @DeleteMapping("/users/{userId}")
-    public int deleteUser(@PathVariable Long userId){
-        return userService.softDeleteUser(userId) ;
+    public ResponseEntity<User> deleteUser(HttpServletRequest request, @PathVariable Long userId) throws TokenNotFoundException, UserNotFoundException {
+        User currentUser = extractUserFromRequest.extractCurrentUser(request);
+        return new ResponseEntity<>(userService.softDeleteUser(userId, currentUser),OK)  ;
     }
 
     @CrossOrigin(origins = "http://localhost:4200/")
@@ -81,20 +91,21 @@ public class UserController {
 
     @CrossOrigin (origins = "http://localhost:4200/")
     @PostMapping("/roles/add")
-    public String addNewRole(@RequestBody Role roleInfo) { return roleService.createRole(roleInfo);}
+    public ResponseEntity<Role> addNewRole(@RequestBody Role roleInfo) {
+        return new ResponseEntity<>(roleService.createRole(roleInfo), CREATED);
+    }
 
     @CrossOrigin
     @PutMapping("/roles/{roleId}")
-    public String editRole(@RequestBody Role roleInfo, @PathVariable Long roleId){
-        String message = roleService.updateRole(roleInfo, roleId);
-        System.out.println(message);
-        return message;
+    public ResponseEntity<Role> editRole(@RequestBody Role roleInfo, @PathVariable Long roleId) throws RoleNotFoundException {
+        return new ResponseEntity<>(roleService.updateRole(roleInfo, roleId), OK);
     }
 
     @CrossOrigin
     @DeleteMapping("/roles/{roleId}")
-    public String deleteRole(@PathVariable Long roleId){
+    public String deleteRole(@PathVariable Long roleId) {
         return roleService.deleteRole(roleId);
+//        return new ResponseEntity<>(roleService.deleteRole(roleId), OK);
     }
 
     @CrossOrigin(origins = "http://localhost:4200/")
@@ -115,6 +126,7 @@ public class UserController {
         return "Welcome to Admin Profile";
     }
 
+    @CrossOrigin
     @PostMapping("/generateToken")
     public ResponseEntity<?> authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));

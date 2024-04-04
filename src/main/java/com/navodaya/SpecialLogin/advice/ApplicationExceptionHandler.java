@@ -2,6 +2,7 @@ package com.navodaya.SpecialLogin.advice;
 
 //import com.navodaya.SpecialLogin.exception.MenuNotFoundException;
 import com.navodaya.SpecialLogin.exception.MenuNotFoundException;
+import com.navodaya.SpecialLogin.exception.RoleNotFoundException;
 import com.navodaya.SpecialLogin.exception.TokenNotFoundException;
 import com.navodaya.SpecialLogin.exception.UserNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -44,6 +45,14 @@ public class ApplicationExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(MenuNotFoundException.class)
     public Map<String,String> handleBusinessException(MenuNotFoundException ex){
+        Map<String,String> errorMap = new HashMap<>();
+        errorMap.put("errorMessage", ex.getMessage());
+        return errorMap;
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(RoleNotFoundException.class)
+    public Map<String,String> handleBusinessException(RoleNotFoundException ex){
         Map<String,String> errorMap = new HashMap<>();
         errorMap.put("errorMessage", ex.getMessage());
         return errorMap;

@@ -1,5 +1,6 @@
 package com.navodaya.SpecialLogin.config;
 
+import com.navodaya.SpecialLogin.entity.Role;
 import com.navodaya.SpecialLogin.filter.JwtAuthFilter;
 import com.navodaya.SpecialLogin.service.CustomUserDetailsService;
 
@@ -28,57 +29,26 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-//    private static final String WELCOME_URL = "/auth/welcome";
-//    private static final String ADD_NEW_USER_URL = "/auth/addNewUser";
-
     @Autowired
     private JwtAuthFilter authFilter;
 
-    // User Creation // UserDetailsService is part of SpringSecurity which Takes UserInfoService created by us.
+    private Role role;
+
     @Bean
     public UserDetailsService userDetailsService() {
         return new CustomUserDetailsService();
     }
 
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        return http
-//                .headers().cacheControl().disable().and()
-//                .csrf().disable()
-//                .authorizeHttpRequests()
-//                .requestMatchers(publicEndpoints()).permitAll()
-//                .and()
-//                .authorizeHttpRequests().requestMatchers("/auth/user/**").authenticated()
-//                .and()
-//                .authorizeHttpRequests().requestMatchers("/auth/admin/**").authenticated()
-//                .and()
-//                .sessionManagement()
-//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//                .and()
-//                .authenticationProvider(authenticationProvider())
-//                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
-//                .build();
-//    }
-//
-//    private RequestMatcher publicEndpoints() {
-//        return new OrRequestMatcher(
-//                new AntPathRequestMatcher(WELCOME_URL),
-//                new AntPathRequestMatcher(ADD_NEW_USER_URL),
-//                // ... other public URLs
-//        );
-//    }
 
-
-    // Configuring HttpSecurity
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.headers().cacheControl().disable().and().csrf().disable()
                 .authorizeHttpRequests()
-                .requestMatchers( "/auth/users/**", "/auth/roles/**", "/auth/generateToken", "/auth/getRolesOfUser", "/menus/**", "/menus").permitAll()
+                .requestMatchers(  "/auth/generateToken", "/auth/getRolesOfUser").permitAll()
                 .and()
-                .authorizeHttpRequests().requestMatchers("/auth/user/**").authenticated()
+                .authorizeHttpRequests().requestMatchers("/auth/user/**", "auth/roles/**", "auth/roles", "menus/**").hasRole("ADMIN")
                 .and()
-                .authorizeHttpRequests().requestMatchers("/auth/admin/**").authenticated()
+                .authorizeHttpRequests().requestMatchers("/auth/admin/**","auth/users/**").permitAll()
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
